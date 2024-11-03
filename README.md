@@ -27,6 +27,8 @@ curl -X POST http://0.0.0.0:3000/receive_otp -H "Content-Type: application/json"
 ### Responses
 - `200 OK`: The OTP was received successfully.
 - `400 Bad Request`: No OTP was provided in the request.
+- `500 Internal Server Error`: Unable to process the request. Possible reasons: Error occurred while inserting data into the database for user registration. Or foreign key constraints failed.
+
 
 ## 2. Register Device
 - **URL**: `/register_device`

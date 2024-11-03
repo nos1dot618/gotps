@@ -9,8 +9,15 @@ type User struct {
 	DeviceFcmToken string `json:"fcm_token"`
 }
 
+type Otp struct {
+	UserId int `json:"user_id"`
+    Otp string `json:"otp"`
+	ServiceId int `json:"service_id"`
+}
+
 func RegisterDevice(user User) error {
-	var query string = `INSERT OR REPLACE INTO users (device_uuid, device_fcm_token) VALUES (?, ?)`
+	var query string = `INSERT OR REPLACE INTO users (device_uuid, device_fcm_token) ` +
+		`VALUES (?, ?)`
 	_, err := db.Exec(query, user.DeviceUuid, user.DeviceFcmToken)
 	if err != nil {
 		log.Printf("error: failed to insert user into database: %v\n", err)
@@ -19,3 +26,13 @@ func RegisterDevice(user User) error {
 	return nil
 }
 
+func InsertOtp(otp Otp) error {
+	var query string = `INSERT OR REPLACE INTO otps (user_id, otp, service_id, timestamp) ` +
+		`VALUES (?, ?, ?, CURRENT_TIMESTAMP)`
+	_, err := db.Exec(query, otp.UserId, otp.Otp, otp.ServiceId);
+	if err != nil {
+		log.Printf("error: failed to insert otp into database: %v\n", err)
+		return err
+	}
+	return nil
+}

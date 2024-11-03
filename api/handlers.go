@@ -10,10 +10,6 @@ import (
     "gotps/database"
 )
 
-type OtpRequest struct {
-    Otp string `json:"otp"`
-}
-
 func JsonResponse(writer http.ResponseWriter, message string, statusCode int) {
     writer.Header().Set("Content-Type", "application/json")
     writer.WriteHeader(statusCode)
@@ -21,16 +17,24 @@ func JsonResponse(writer http.ResponseWriter, message string, statusCode int) {
 }
 
 func ReceiveOtpHandler(writer http.ResponseWriter, req *http.Request) {
-    var otpReq OtpRequest
+    var otp database.Otp
     
-    var err error = json.NewDecoder(req.Body).Decode(&otpReq)
-    if err != nil || otpReq.Otp == "" {
+    var err error = json.NewDecoder(req.Body).Decode(&otp)
+    if err != nil || otp.Otp == "" {
         log.Println("error: no OTP provided")
         JsonResponse(writer, "No OTP provided", http.StatusBadRequest)
         return
     }
+	
+    log.Printf("info: received OTP: %s\n", otp.Otp)
 
-    log.Printf("info: received OTP: %s\n", otpReq.Otp)
+	err = database.InsertOtp(otp);
+    if err != nil {
+        log.Printf("error: failed to insert otp: %v\n", err);
+        JsonResponse(writer, "Failed to insert otp", http.StatusInternalServerError)
+        return
+    }
+	
     JsonResponse(writer, "OTP received successfully", http.StatusOK)
 }
 
@@ -56,6 +60,7 @@ func RegisterDeviceHandler(writer http.ResponseWriter, req *http.Request) {
     JsonResponse(writer, "User registered successfully", http.StatusOK)
 }
 
+// TODO: this does not work fic this
 func SendFCMNotification(fcmToken string, message string) error {
     url := "https://fcm.googleapis.com/fcm/send"
 
