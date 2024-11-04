@@ -15,6 +15,7 @@ func main() {
 	
 	http.HandleFunc("/receive_otp", api.ReceiveOtpHandler)
 	http.HandleFunc("/register_device", api.RegisterDeviceHandler)
+	http.HandleFunc("/register_service", api.RegisterServiceHandler)
 
 	var ipPort string = "0.0.0.0:3000"
 	log.Printf("info: server is running at http://%s\n", ipPort)

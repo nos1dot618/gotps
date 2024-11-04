@@ -43,21 +43,45 @@ func RegisterDeviceHandler(writer http.ResponseWriter, req *http.Request) {
 
     var err error = json.NewDecoder(req.Body).Decode(&user)
     if err != nil || user.DeviceUuid == "" || user.DeviceFcmToken == "" {
-        log.Println("error: invalid user registration request")
-        JsonResponse(writer, "Invalid user registration request", http.StatusBadRequest)
+        log.Printf("error: invalid device registration request: %v\n", err);
+        JsonResponse(writer, "Invalid device registration request", http.StatusBadRequest)
         return
     }
 
     err = database.RegisterDevice(user);
     if err != nil {
-        log.Printf("error: failed to register user: %v\n", err);
-        JsonResponse(writer, "Failed to register user", http.StatusInternalServerError)
+        log.Printf("error: failed to register device: %v\n", err);
+        JsonResponse(writer, "Failed to register device", http.StatusInternalServerError)
         return
     }
     
-    log.Printf("info: registered user with UUID: %s, FCM token: %s\n",
+    log.Printf("info: registered device with UUID: %s, FCM token: %s\n",
         user.DeviceUuid, user.DeviceFcmToken)
-    JsonResponse(writer, "User registered successfully", http.StatusOK)
+    JsonResponse(writer, "Device registered successfully", http.StatusOK)
+}
+
+func RegisterServiceHandler(writer http.ResponseWriter, req *http.Request) {
+    var service database.Service
+
+    var err error = json.NewDecoder(req.Body).Decode(&service)
+    if err != nil || service.Name == "" || service.Regex == "" ||
+		service.SampleOtpMessage == "" || service.SampleOtp == "" ||
+		service.ExpectedOtpTtl <= 0 {
+        log.Printf("error: invalid service registration request: %v\n", err);
+        JsonResponse(writer, "Invalid service registration request", http.StatusBadRequest)
+        return
+    }
+
+    err = database.RegisterService(service);
+    if err != nil {
+        log.Printf("error: failed to register service: %v\n", err);
+        JsonResponse(writer, "Failed to register service", http.StatusInternalServerError)
+        return
+    }
+    
+    log.Printf("info: registered service with Name: %s, TTL: %d\n",
+        service.Name, service.ExpectedOtpTtl)
+    JsonResponse(writer, "Service registered successfully", http.StatusOK)
 }
 
 // TODO: this does not work fic this
