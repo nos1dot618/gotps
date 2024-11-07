@@ -1,5 +1,13 @@
 > Go OTP Server for integration with the [gibotp](https://github.com/hyouteki/gibotp) Android application.
 > This server registers devices and requests OTPs from specified services by sending notifications to the registered device.
+---
+
+# Getting Started
+1. Ensure you have Go installed and set up on your system.
+2. Ensure you have correctly added all the API keys, tokens, credentials, etc. in the `creds.bashrc.tmpl` and rename it to `creds.bashrc`.
+3. Give `run_server.sh` script executable permission using `chmod +x run_server.sh`.
+4. Run the server and admin portal using the command `./run_server.sh`.
+---
 
 # API documentation
 Server exposes two endpoints.
@@ -16,7 +24,10 @@ Server exposes two endpoints.
 
 ### Example
 ```bash
-curl -X POST http://0.0.0.0:3000/receive_otp -H "Content-Type: application/json" -d '{"otp":"123456"}'
+curl \
+    -X POST http://0.0.0.0:3000/receive_otp \
+    -H "Content-Type: application/json" \
+    -d '{"otp":"123456"}'
 ```
 ```json
 {
@@ -25,10 +36,11 @@ curl -X POST http://0.0.0.0:3000/receive_otp -H "Content-Type: application/json"
 ```
 
 ### Responses
-- `200 OK`: The OTP was received successfully.
-- `400 Bad Request`: No OTP was provided in the request.
-- `500 Internal Server Error`: Unable to process the request. Possible reasons: Error occurred while inserting data into the database for user registration. Or foreign key constraints failed.
-
+| Status Code                 | Message	                  | Description                                                                                |
+|-----------------------------|---------------------------|--------------------------------------------------------------------------------------------|
+| `200 OK`	                  | OTP received successfully | OTP was successfully received.                                                             |
+| `400 Bad Request`	          | Invalid request	          | No OTP was provided in the request.                                                        |
+| `500 Internal Server Error` |	Internal processing error | Unable to process the request, possibly due to database errors or foreign key constraints. |
 
 ## 2. Register Device
 - **URL**: `/register_device`
@@ -43,7 +55,10 @@ curl -X POST http://0.0.0.0:3000/receive_otp -H "Content-Type: application/json"
 
 ### Example
 ```bash
-curl -X POST http://0.0.0.0:3000/register_device -H "Content-Type: application/json" -d '{"uuid":"device-123", "fcm_token":"abcd1234fcmToken"}'
+curl \
+    -X POST http://0.0.0.0:3000/register_device \
+    -H "Content-Type: application/json" \
+    -d '{"uuid":"device-123", "fcm_token":"abcd1234fcmToken"}'
 ```
 ```json
 {
@@ -53,10 +68,43 @@ curl -X POST http://0.0.0.0:3000/register_device -H "Content-Type: application/j
 ```
 
 ### Responses
-- `200 OK`: The device was registered successfully.
-- `400 Bad Request`: The request is missing required fields or has invalid data.
-- `500 Internal Server Error`: Unable to process the request. Possible reasons: Error occurred while inserting data into the database for user registration.
+| Status Code                 | Message	                       | Description                                                                                |
+|-----------------------------|--------------------------------|--------------------------------------------------------------------------------------------|
+| `200 OK`	                  | Device registered successfully | Device registration was successful.                                                        |
+| `400 Bad Request`	          | Invalid request	               | The request is missing required fields or has invalid data.                                |
+| `500 Internal Server Error` |	Internal processing error      | Unable to process the request, possibly due to database errors during registration.        |
 
-# Getting Started
-1. Ensure you have Go installed and set up on your system.
-2. Run the server using the command `go run main.go`.
+## 3. Register Service
+- **URL**: `/register_service`
+- **Method**: `POST`
+- **Description**: Registers a service with details including the service name, regex pattern for OTP extraction, a sample OTP message, sample OTP, and expected OTP TTL.
+
+### Request Body
+| Field	             | Type	  | Description	                                           | Required |
+|--------------------|--------|--------------------------------------------------------|----------|
+| name	             | String |	The name of the service	                               | Yes      |
+| regex              | String | Regular expression to match OTP in messages	           | Yes      |
+| sample_otp_message | String |A sample message containing an OTP for the service      | Yes      |
+| sample_otp	     | String | The sample OTP for the service                         | Yes      |
+| expected_otp_ttl	 | Int    | The expected TTL (time-to-live) for the OTP in seconds | Yes      |
+
+### Example
+```bash
+curl \
+    -X POST http://0.0.0.0:3000/register_device \
+    -H "Content-Type: application/json" \
+    -d '{"name":"ExampleService","regex":"\\d{6}","sample_otp_message":"Your OTP is 123456","sample_otp":"123456","expected_otp_ttl":300}'
+```
+```json
+{
+    "uuid": "device-123",
+    "fcm_token": "abcd1234fcmToken"
+}
+```
+
+### Responses
+| Status Code                 | Message	                        | Description                                                                                 |
+|-----------------------------|---------------------------------|---------------------------------------------------------------------------------------------|
+| `200 OK`	                  | Service registered successfully | The service registration was successful.                                                    |
+| `400 Bad Request`	          | Invalid service registration    | The request is missing required fields or has invalid data.                                 |
+| `500 Internal Server Error` |	Internal processing error       | Unable to process the request, possibly due to database errors during service registration. |
